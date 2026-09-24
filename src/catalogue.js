@@ -1,20 +1,10 @@
 import './style.css';
-import { getSavedTheme, applyTheme } from './components/theme';
-import { renderHeader, initThemeToggle, initBurgerMenu, initSmoothScroll } from './components/Header';
-import { renderFooter } from './components/Footer';
+import { initPage } from './components/init';
 import { renderCatalogue, initCatalogue } from './components/Catalogue';
+import { ProductModal } from './components/Modal';
 
-applyTheme(getSavedTheme());
+const mainContent = renderCatalogue();
+const root = initPage('#app', mainContent);
 
-const app = document.querySelector('#app');
-
-app.innerHTML = `
-  ${renderHeader()}
-  ${renderCatalogue()}
-  ${renderFooter()}
-`;
-
-initThemeToggle();
-initBurgerMenu();
-initSmoothScroll();
-initCatalogue();
+const modal = new ProductModal();
+initCatalogue(root, modal);
