@@ -27,13 +27,15 @@ export function renderHeader() {
             <span data-theme-icon="light" class="is-active">☀</span>
             <span data-theme-icon="dark">🌙</span>
           </button>
-          <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false">
+          <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">
             <span class="menu-btn__bar"></span>
             <span class="menu-btn__bar"></span>
             <span class="menu-btn__bar"></span>
-            <span>Menu</span>
+            <span class="menu-btn__text">Menu</span>
           </button>
         </div>
+
+        <div class="nav__overlay" aria-hidden="true"></div>
       </div>
     </header>
   `;
@@ -51,12 +53,84 @@ export function initThemeToggle() {
 export function initBurgerMenu() {
   const btn = document.querySelector('.menu-btn');
   const nav = document.querySelector('.nav');
+  const overlay = document.querySelector('.nav__overlay');
 
-  if (!btn || !nav) return;
+  if (!btn || !nav || !overlay) return;
+
+  let lastFocused = null;
+
+  function openMenu() {
+    lastFocused = document.activeElement;
+    nav.classList.add('nav--open');
+    overlay.classList.add('is-visible');
+    btn.setAttribute('aria-expanded', 'true');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    // Focus first link
+    const firstLink = nav.querySelector('.nav__link');
+    if (firstLink) firstLink.focus();
+    trapFocus(nav);
+  }
+
+  function closeMenu() {
+    nav.classList.remove('nav--open');
+    overlay.classList.remove('is-visible');
+    btn.setAttribute('aria-expanded', 'false');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (lastFocused) lastFocused.focus();
+  }
+
+  function trapFocus(element) {
+    const focusable = element.querySelectorAll('a, button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    function handleTab(e) {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    element.addEventListener('keydown', handleTab);
+    element._trapFocusHandler = handleTab;
+  }
+
+  function untrapFocus(element) {
+    if (element._trapFocusHandler) {
+      element.removeEventListener('keydown', element._trapFocusHandler);
+      delete element._trapFocusHandler;
+    }
+  }
 
   btn.addEventListener('click', () => {
     const isOpen = nav.classList.toggle('nav--open');
-    btn.setAttribute('aria-expanded', String(isOpen));
+    if (isOpen) openMenu();
+    else closeMenu();
+  });
+
+  overlay.addEventListener('click', closeMenu);
+
+  nav.querySelectorAll('.nav__link').forEach((link) => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 768) closeMenu();
+    });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && nav.classList.contains('nav--open')) closeMenu();
+  });
+
+  // Close on resize > 768
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768 && nav.classList.contains('nav--open')) {
+      closeMenu();
+    }
   });
 }
 
