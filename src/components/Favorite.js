@@ -6,58 +6,43 @@ export function renderFavorite() {
       <div class="container">
         <h2 class="favorite__title">Choose your <em>favorite</em> coffee</h2>
 
-        <div class="slider">
-          <button class="slider__arrow" type="button" data-slide="prev">←</button>
+        <div class="slider" data-slider>
+          <div class="slider__viewport">
+            <button class="slider__arrow slider__arrow--prev" type="button" data-slide="prev" aria-label="Previous slide">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
+            </button>
 
-          <div class="slider__slide">
-            <img
-              class="slider__image"
-              src="${coffees[1].img}"
-              alt="${coffees[1].name}"
-            />
-            <h3 class="slider__name">${coffees[1].name}</h3>
-            <p class="slider__desc">${coffees[1].desc}</p>
-            <p class="slider__price">${coffees[1].price}</p>
+            <div class="slider__track" role="region" aria-label="Coffee slides">
+              <div class="slider__slides">
+                ${coffees.map((c, i) => `
+                  <div class="slider__slide ${i === 0 ? 'is-active' : ''}" data-index="${i}">
+                    <div class="slider__image-wrapper">
+                      <img class="slider__image" src="${c.img}" alt="${c.name}" loading="${i === 0 ? 'eager' : 'lazy'}" />
+                    </div>
+                    <h3 class="slider__name">${c.name}</h3>
+                    <p class="slider__desc">${c.desc}</p>
+                    <p class="slider__price">${c.price}</p>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <button class="slider__arrow slider__arrow--next" type="button" data-slide="next" aria-label="Next slide">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
           </div>
 
-          <button class="slider__arrow" type="button" data-slide="next">→</button>
-        </div>
-
-        <div class="slider__dots">
-          <button class="slider__dot" type="button" aria-label="Slide 1"></button>
-          <button class="slider__dot is-active" type="button" aria-label="Slide 2"></button>
-          <button class="slider__dot" type="button" aria-label="Slide 3"></button>
+          <div class="slider__dots" role="tablist" aria-label="Slide indicators">
+            ${coffees.map((_, i) => `
+              <button class="slider__dot ${i === 0 ? 'is-active' : ''}" type="button" role="tab" data-slide="${i}" aria-label="Slide ${i + 1}" ${i === 0 ? 'aria-selected="true"' : 'aria-selected="false"'}></button>
+            `).join('')}
+          </div>
         </div>
       </div>
     </section>
   `;
-}
-
-export function initSlider() {
-  const slideEl = document.querySelector('.slider__slide');
-  const dots = document.querySelectorAll('.slider__dot');
-  let current = 1;
-
-  function renderSlide(index) {
-    current = (index + coffees.length) % coffees.length;
-    const c = coffees[current];
-
-    slideEl.querySelector('.slider__image').src = c.img;
-    slideEl.querySelector('.slider__image').alt = c.name;
-    slideEl.querySelector('.slider__name').textContent = c.name;
-    slideEl.querySelector('.slider__desc').textContent = c.desc;
-    slideEl.querySelector('.slider__price').textContent = c.price;
-
-    dots.forEach((d, i) => d.classList.toggle('is-active', i === current));
-  }
-
-  document
-    .querySelector('[data-slide="prev"]')
-    .addEventListener('click', () => renderSlide(current - 1));
-  document
-    .querySelector('[data-slide="next"]')
-    .addEventListener('click', () => renderSlide(current + 1));
-  dots.forEach((dot, i) =>
-    dot.addEventListener('click', () => renderSlide(i))
-  );
 }
